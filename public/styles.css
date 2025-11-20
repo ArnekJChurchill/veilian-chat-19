@@ -1,93 +1,149 @@
+/* ==========================
+   GENERAL RESET
+========================== */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
-  background: #1a1a1a;
+  background: #1e1e1e;
   color: #fff;
 }
 
-.screen {
-  max-width: 600px;
-  margin: 50px auto;
-  text-align: center;
-}
-
-input {
-  padding: 10px;
-  margin: 5px;
-  width: 80%;
-  border-radius: 5px;
-  border: 1px solid #333;
+input, button {
+  padding: 8px;
+  margin: 5px 0;
+  border-radius: 4px;
+  border: none;
+  outline: none;
 }
 
 button {
-  padding: 10px 15px;
-  margin: 5px;
-  border-radius: 5px;
-  border: none;
+  background-color: #00bfff;
+  color: #fff;
   cursor: pointer;
-  background-color: #0e76a8;
-  color: white;
+  transition: 0.2s;
 }
 
 button:hover {
-  background-color: #06537b;
+  background-color: #009acd;
 }
 
-.topBar {
+input {
+  width: 200px;
+}
+
+/* ==========================
+   LOGIN SCREEN
+========================== */
+#loginScreen {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  height: 100vh;
 }
 
-.messages {
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid #333;
+#loginScreen h1 {
+  margin-bottom: 20px;
+  color: #00ffff;
+}
+
+/* ==========================
+   CHAT SCREEN
+========================== */
+#chatScreen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
   padding: 10px;
-  background: #111;
-  margin: 10px 0;
+}
+
+#messages {
+  flex: 1;
+  background-color: #2e2e2e;
+  border-radius: 6px;
+  padding: 10px;
+  overflow-y: auto;
+  margin-bottom: 10px;
 }
 
 .messageRow {
-  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
-.userAvatar {
-  width: 35px;
-  height: 35px;
+.messageRow img.userAvatar {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  vertical-align: middle;
-  margin-right: 5px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+/* Chat input at bottom */
+#chatMessage {
+  width: 80%;
+}
+
+/* ==========================
+   PROFILE PAGE POPUP
+========================== */
+#profilePage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
 .profileBox {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #222;
+  background-color: #2e2e2e;
   padding: 20px;
-  border-radius: 10px;
+  border-radius: 8px;
   width: 300px;
   text-align: center;
-  z-index: 1000;
+  position: relative;
 }
 
-.profileBox img {
-  width: 70px;
-  height: 70px;
+.profileBox img.userAvatar {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   margin-bottom: 10px;
 }
 
-.chatInput {
-  display: flex;
-  justify-content: center;
+.profileBox button {
   margin-top: 10px;
 }
 
-.chatInput input {
-  flex: 1;
+.profileBox h2 {
+  margin: 5px 0;
+  color: #00ffff;
 }
 
+.profileBox p {
+  margin: 4px 0;
+  font-size: 14px;
+  word-wrap: break-word;
+}
+
+/* ==========================
+   ADMIN PANEL
+========================== */
+#adminPanel {
+  background-color: #222;
+  padding: 10px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+#adminPanel input {
+  margin: 5px 0;
+}
