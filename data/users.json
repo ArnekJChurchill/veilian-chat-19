@@ -8,15 +8,15 @@
       "avatar": "default.png",
       "bio": "Moderator of Veilian Chat",
       "joinDate": "2025-11-20T00:00:00.000Z"
+    },
+    {
+      "username": "God",
+      "password": "988585aw",
+      "isModerator": true,
+      "displayName": "God",
+      "avatar": "default.png",
+      "bio": "Moderator account.",
+      "joinDate": "2025-11-20T00:00:00.000Z"
     }
   ]
-}
-{
-  "username": "God",
-  "password": "988585aw",
-  "isModerator": true,
-  "displayName": "God",
-  "avatar": "default.png",
-  "bio": "Moderator account.",
-  "joinDate": "2025-11-20T00:00:00.000Z"
 }
