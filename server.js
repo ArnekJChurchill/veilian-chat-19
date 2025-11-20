@@ -6,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 const Pusher = require("pusher");
 
-// Pusher setup
+// === Pusher Setup ===
 const pusher = new Pusher({
   appId: "2080160",
   key: "b7d05dcc13df522efbbc",
@@ -21,39 +21,41 @@ app.use(cors());
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 
-// Ensure folders exist
+// === Ensure folders exist ===
 fs.ensureDirSync("uploads/profilePics");
 fs.ensureDirSync("data");
 
-// User and banned files
+// === Database files ===
 const USERS_FILE = path.join(__dirname, "data/users.json");
 const BANNED_FILE = path.join(__dirname, "data/banned.json");
 
 if (!fs.existsSync(USERS_FILE)) fs.writeJSONSync(USERS_FILE, { users: [] });
 if (!fs.existsSync(BANNED_FILE)) fs.writeJSONSync(BANNED_FILE, { banned: [] });
 
-// Multer setup for avatars
+// === Multer for avatar uploads ===
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/profilePics"),
-  filename: (req, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`)
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage });
 
-// ==================== AUTH ====================
-
-// Signup
+// ================================
+// SIGNUP
+// ================================
 app.post("/signup", (req, res) => {
   let { username, password } = req.body;
   username = username.toLowerCase();
   const usersData = fs.readJSONSync(USERS_FILE);
 
-  if (usersData.users.find(u => u.username === username)) 
+  if (usersData.users.find(u => u.username === username))
     return res.json({ success: false, message: "Username already taken" });
+
+  const isModerator = username === "arnekchurchill";
 
   usersData.users.push({
     username,
     password,
-    isModerator: username === "arnekchurchill" ? true : false,
+    isModerator,
     displayName: username,
     avatar: "default.png",
     bio: "",
@@ -64,26 +66,29 @@ app.post("/signup", (req, res) => {
   res.json({ success: true });
 });
 
-// Login
+// ================================
+// LOGIN
+// ================================
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
   const usersData = fs.readJSONSync(USERS_FILE);
   const bannedData = fs.readJSONSync(BANNED_FILE);
 
-  if (bannedData.banned.includes(username)) 
-    return res.json({ success: false, message: "User is banned." });
+  if (bannedData.banned.includes(username))
+    return res.json({ success: false, message: "You are banned." });
 
   const user = usersData.users.find(u => u.username === username && u.password === password);
-  if (!user) return res.json({ success: false, message: "Invalid login" });
+  if (!user) return res.json({ success: false, message: "Invalid credentials" });
 
   res.json({ success: true, user });
 });
 
-// Update Profile
+// ================================
+// UPDATE PROFILE
+// ================================
 app.post("/updateProfile", upload.single("avatar"), (req, res) => {
   const { username, displayName, bio } = req.body;
   const usersData = fs.readJSONSync(USERS_FILE);
-
   const user = usersData.users.find(u => u.username === username);
   if (!user) return res.json({ success: false });
 
@@ -92,10 +97,12 @@ app.post("/updateProfile", upload.single("avatar"), (req, res) => {
   if (req.file) user.avatar = req.file.filename;
 
   fs.writeJSONSync(USERS_FILE, usersData);
-  res.json({ success: true, filename: req.file ? req.file.filename : null });
+  res.json({ success: true, filename: req.file ? req.file.filename : undefined });
 });
 
-// Get Profile
+// ================================
+// GET PROFILE
+// ================================
 app.get("/profile/:username", (req, res) => {
   const username = req.params.username;
   const usersData = fs.readJSONSync(USERS_FILE);
@@ -104,9 +111,9 @@ app.get("/profile/:username", (req, res) => {
   res.json({ success: true, user });
 });
 
-// ==================== ADMIN ====================
-
-// Ban
+// ================================
+// ADMIN / MODERATOR
+// ================================
 app.post("/ban", (req, res) => {
   const { username } = req.body;
   const bannedData = fs.readJSONSync(BANNED_FILE);
@@ -115,7 +122,6 @@ app.post("/ban", (req, res) => {
   res.json({ success: true });
 });
 
-// Unban
 app.post("/unban", (req, res) => {
   const { username } = req.body;
   const bannedData = fs.readJSONSync(BANNED_FILE);
@@ -124,13 +130,17 @@ app.post("/unban", (req, res) => {
   res.json({ success: true });
 });
 
-// ==================== CHAT ====================
+// ================================
+// SEND CHAT MESSAGE
+// ================================
 app.post("/send-message", (req, res) => {
   const { username, message } = req.body;
   pusher.trigger("chat", "message", { username, message });
   res.json({ success: true });
 });
 
-// ==================== START SERVER ====================
+// ================================
+// START SERVER
+// ================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Veilian-Chat-19 running on http://localhost:${PORT}`));
