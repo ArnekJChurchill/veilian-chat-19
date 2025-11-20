@@ -25,37 +25,43 @@ app.use("/uploads", express.static("uploads"));
 fs.ensureDirSync("uploads/profilePics");
 fs.ensureDirSync("data");
 
-// === Database files ===
+// === Load database ===
 const USERS_FILE = path.join(__dirname, "data/users.json");
 const BANNED_FILE = path.join(__dirname, "data/banned.json");
 
 if (!fs.existsSync(USERS_FILE)) fs.writeJSONSync(USERS_FILE, { users: [] });
 if (!fs.existsSync(BANNED_FILE)) fs.writeJSONSync(BANNED_FILE, { banned: [] });
 
-// === Multer for avatar uploads ===
+// === Multer Upload Setup (avatars) ===
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/profilePics"),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+  destination: (req, file, cb) => {
+    cb(null, "uploads/profilePics");
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}${ext}`);
+  },
 });
-const upload = multer({ storage });
+const upload = multer({ storage: storage });
 
 // ================================
 // SIGNUP
 // ================================
 app.post("/signup", (req, res) => {
   let { username, password } = req.body;
+  if (!username || !password) return res.json({ success: false, message: "Enter username and password" });
+
   username = username.toLowerCase();
   const usersData = fs.readJSONSync(USERS_FILE);
 
-  if (usersData.users.find(u => u.username === username))
+  if (usersData.users.find(u => u.username === username)) {
     return res.json({ success: false, message: "Username already taken" });
-
-  const isModerator = username === "arnekchurchill";
+  }
 
   usersData.users.push({
     username,
     password,
-    isModerator,
+    isModerator: false,
     displayName: username,
     avatar: "default.png",
     bio: "",
@@ -74,11 +80,12 @@ app.post("/login", (req, res) => {
   const usersData = fs.readJSONSync(USERS_FILE);
   const bannedData = fs.readJSONSync(BANNED_FILE);
 
-  if (bannedData.banned.includes(username))
-    return res.json({ success: false, message: "You are banned." });
+  if (bannedData.banned.includes(username)) {
+    return res.json({ success: false, message: "User is banned." });
+  }
 
   const user = usersData.users.find(u => u.username === username && u.password === password);
-  if (!user) return res.json({ success: false, message: "Invalid credentials" });
+  if (!user) return res.json({ success: false, message: "Invalid login" });
 
   res.json({ success: true, user });
 });
@@ -97,7 +104,7 @@ app.post("/updateProfile", upload.single("avatar"), (req, res) => {
   if (req.file) user.avatar = req.file.filename;
 
   fs.writeJSONSync(USERS_FILE, usersData);
-  res.json({ success: true, filename: req.file ? req.file.filename : undefined });
+  res.json({ success: true, filename: user.avatar });
 });
 
 // ================================
@@ -107,34 +114,43 @@ app.get("/profile/:username", (req, res) => {
   const username = req.params.username;
   const usersData = fs.readJSONSync(USERS_FILE);
   const user = usersData.users.find(u => u.username === username);
+
   if (!user) return res.json({ success: false });
   res.json({ success: true, user });
 });
 
 // ================================
-// ADMIN / MODERATOR
+// ADMIN FUNCTIONS
 // ================================
 app.post("/ban", (req, res) => {
   const { username } = req.body;
   const bannedData = fs.readJSONSync(BANNED_FILE);
+
   if (!bannedData.banned.includes(username)) bannedData.banned.push(username);
   fs.writeJSONSync(BANNED_FILE, bannedData);
+
   res.json({ success: true });
 });
 
 app.post("/unban", (req, res) => {
   const { username } = req.body;
   const bannedData = fs.readJSONSync(BANNED_FILE);
+
   bannedData.banned = bannedData.banned.filter(u => u !== username);
   fs.writeJSONSync(BANNED_FILE, bannedData);
+
   res.json({ success: true });
 });
 
 // ================================
-// SEND CHAT MESSAGE
+// CHAT
 // ================================
 app.post("/send-message", (req, res) => {
   const { username, message } = req.body;
+  const bannedData = fs.readJSONSync(BANNED_FILE);
+
+  if (bannedData.banned.includes(username)) return res.json({ success: false, message: "Banned users cannot send messages" });
+
   pusher.trigger("chat", "message", { username, message });
   res.json({ success: true });
 });
